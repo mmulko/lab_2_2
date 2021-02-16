@@ -9,19 +9,45 @@ def main(loc_lst: str):
     year = '(' + input("Enter year: ") + ')'
     point = input("Enter your location: ")
     location = coordinates_to_address(point)
+    print(border("Your location is defined as: " + location))
+    user_1 = input("Is it correct? [Y/N]: ")
+    if user_1 == "N":
+        return "What a shame, try different points then!"
+    else:
+        print("What a luck, let's build a map!")
     location = location.split(", ")[-1]
-    print(location)
     file = create_list(loc_lst)
+    print("Process status: 20%")
     y_list = get_year_list(year, file, location)
+    print("Process status: 36%")
     z_list = get_data_list(y_list)
+    print("Process status: 52%")
     g_list = get_coordinates_to_movie(z_list)
+    print("Process status: 68%")
     f_list = calc_distance(g_list, point)
-    print(f_list)
-    res = creat_map(f_list, point)
+    print("Process status: 84%")
+    res = creat_map(f_list, point, year)
     return res
 
 
+def border(msg):
+    """
+    This function puts border around text
+    >>> border("Hello")
+    '+-----+\n|Hello|\n+-----+'
+    """
+    row = len(msg)
+    h = ''.join(['+'] + ['-' * row] + ['+'])
+    result = h + '\n'"|" + msg + "|"'\n' + h
+    return result
+
+
 def get_coordinates(location: str):
+    """
+    This function get coordinates from location
+    >>> get_coordinates("Kiev, Ukraine")
+    [50.4500336, 30.5241361]
+    """
     try:
         geolocator = Nominatim(user_agent="mmulko")
         try:
@@ -35,6 +61,9 @@ def get_coordinates(location: str):
 
 
 def create_list(file):
+    """
+    This function creates list of rows from file
+    """
     f_list = []
     with open(file) as f:
         for _ in range(14):
@@ -48,6 +77,9 @@ def create_list(file):
 
 
 def get_year_list(year, file, loc):
+    """
+    This function gets movies from one year and country
+    """
     year_list = []
     for num in range(14, len(file) - 1):
         if year in file[num]:
@@ -56,11 +88,16 @@ def get_year_list(year, file, loc):
     for num in range(len(year_list)):
         if loc in year_list[num]:
             index = year_list[num].index(loc)
-            loc_list.append(year_list[num][0:index+1])
+            loc_list.append(year_list[num][0:index + 1])
     return loc_list
 
 
 def coordinates_to_address(point: str):
+    """
+    This function converts coordinates to address
+    >>> coordinates_to_address("50.4500336, 30.5241361")
+    Independence Square, Khreshchatyk Street, Центр, Shevchenkivskyi district, Kyiv, Київська міська громада, 1001, Ukraine
+    """
     geolocator = Nominatim(user_agent="mmulko")
     try:
         time.sleep(1)
@@ -71,6 +108,9 @@ def coordinates_to_address(point: str):
 
 
 def get_data_list(loc_list):
+    """
+    This function divides movie name and address into two separate lists
+    """
     f_list = []
     for row in range(len(loc_list)):
         p_list = []
@@ -87,6 +127,9 @@ def get_data_list(loc_list):
 
 
 def get_coordinates_to_movie(r_list):
+    """
+    This function converts movie addresses two coordinates for all movies
+    """
     for num in range(len(r_list)):
         w_list = r_list[num][1]
         f_str = ""
@@ -104,6 +147,10 @@ def get_coordinates_to_movie(r_list):
 
 
 def calc_distance(n_list, point):
+    """
+    This function calculates distance between original location and movie
+    production address for all movies in list
+    """
     R = 3959.87433
     f_list = []
     count = 0
@@ -137,17 +184,20 @@ def calc_distance(n_list, point):
             count += 1
     n_list[len(n_list) - 1].clear()
     list2 = [x for x in n_list if x != []]
-    print(len(list2))
     return list2
 
 
-def creat_map(f_list, point):
+def creat_map(f_list, point, year):
+    """
+    This function generates map
+    """
     p_list = []
     point_lst = point.split(", ")
     p_list.append(point_lst[0])
     p_list.append(point_lst[1])
     map_1 = folium.Map(tiles="Stamen Terrain", location=p_list, zoom_start=7)
-    map_1.add_child(folium.Marker(location=p_list, popup="Your location", icon=folium.Icon()))
+    map_1.add_child(folium.Marker(location=p_list, popup="Your location",
+                                  icon=folium.Icon()))
     for num in range(len(f_list)):
         f_str = ""
         for num_2 in range(len(f_list[num][0])):
@@ -155,10 +205,14 @@ def creat_map(f_list, point):
                 f_str = f_str + f_list[num][0][num_2]
             else:
                 f_str = f_str + " " + f_list[num][0][num_2]
-        map_1.add_child(folium.Marker(location=f_list[num][1], popup=f_str, icon=folium.Icon()))
-        folium.PolyLine(locations=[f_list[num][1], p_list], color='red').add_to(map_1)
-    map_1.save("Map_1.html")
-    return "Ready"
+        map_1.add_child(folium.Marker(location=f_list[num][1], popup=f_str,
+                                      icon=folium.Icon()))
+        folium.PolyLine(locations=[f_list[num][1], p_list],
+                        color='red').add_to(map_1)
+    map_1.save("Map_" + year + ".html")
+    map_name = "Map_" + year + ".html"
+    print("Process status: 100%")
+    return "Find your map at: " + map_name
 
 
 if __name__ == '__main__':

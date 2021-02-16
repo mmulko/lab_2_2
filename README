@@ -1,1 +1,41 @@
-lab_1_2
+# Lab_2_2
+## Purpose
+Module for creating map of 10 or less nearest points to the given location of film production in asked year
+
+## What we got?
+
+The map gives us visualisation of film production locations and distance between given location. This gives opportunity to see how far away movies are made.
+
+## Usage example
+
+python main.py
+
+Enter year: 2015
+
+Enter your location: 49.83826, 24.02324
+
++-------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+|Your location is defined as: 3, Yuliusha Slovatskoho Street, Tsytadel, Штіллерівка, Halytskyi District, Lviv, Lviv Urban Hromada, Lviv Raion, Lviv Oblast, 79000, Ukraine|
++-------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+
+Is it correct? [Y/N]: Y
+
+What a luck, let's build a map!
+
+Process status: 20%
+
+Process status: 36%
+
+Process status: 52%
+
+Process status: 68%
+
+Process status: 84%
+
+Process status: 100%
+
+Find your map at: Map_(2015).html
+![img.png](img.png)
+
+## License
+[MIT](https://choosealicense.com/licenses/mit/)
