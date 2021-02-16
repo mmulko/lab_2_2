@@ -1,6 +1,8 @@
 from geopy.geocoders import Nominatim
 from geopy.exc import GeocoderTimedOut
 import time
+from math import radians, cos, sin, asin, sqrt
+import folium
 
 
 def main(loc_lst: str):
@@ -13,7 +15,10 @@ def main(loc_lst: str):
     y_list = get_year_list(year, file, location)
     z_list = get_data_list(y_list)
     g_list = get_coordinates_to_movie(z_list)
-    return g_list
+    f_list = calc_distance(g_list, point)
+    print(f_list)
+    res = creat_map(f_list, point)
+    return res
 
 
 def get_coordinates(location: str):
@@ -58,6 +63,7 @@ def get_year_list(year, file, loc):
 def coordinates_to_address(point: str):
     geolocator = Nominatim(user_agent="mmulko")
     try:
+        time.sleep(1)
         location = geolocator.reverse(point, language='en')
         return location.address
     except GeocoderTimedOut as e:
@@ -97,8 +103,62 @@ def get_coordinates_to_movie(r_list):
     return r_list
 
 
-def calc_distance(n_list):
-    pass
+def calc_distance(n_list, point):
+    R = 3959.87433
+    f_list = []
+    count = 0
+    for num in range(len(n_list)):
+        p_list = point.split(", ")
+        lon_2 = p_list[0]
+        lat_2 = p_list[1]
+        if n_list[num][1] == "None":
+            break
+        else:
+            lon_1 = n_list[num][1][0]
+            lat_1 = n_list[num][1][1]
+        dLat = radians(float(lat_2) - float(lat_1))
+        dLon = radians(float(lon_2) - float(lon_1))
+        lat1 = radians(float(lat_1))
+        lat2 = radians(float(lat_2))
+        a = sin(dLat / 2) ** 2 + cos(lat1) * cos(lat2) * sin(dLon / 2) ** 2
+        c = 2 * asin(sqrt(a))
+        res = R * c
+        if count > 0:
+            if res < f_list[0] or res == f_list[0]:
+                f_list.append(res)
+                count += 1
+                if count > 9:
+                    f_list.pop()
+                    n_list[count - 10].clear()
+            else:
+                n_list[num].clear()
+        else:
+            f_list.append(res)
+            count += 1
+    n_list[len(n_list) - 1].clear()
+    list2 = [x for x in n_list if x != []]
+    print(len(list2))
+    return list2
+
+
+def creat_map(f_list, point):
+    p_list = []
+    point_lst = point.split(", ")
+    p_list.append(point_lst[0])
+    p_list.append(point_lst[1])
+    map_1 = folium.Map(tiles="Stamen Terrain", location=p_list, zoom_start=7)
+    map_1.add_child(folium.Marker(location=p_list, popup="Your location", icon=folium.Icon()))
+    for num in range(len(f_list)):
+        f_str = ""
+        for num_2 in range(len(f_list[num][0])):
+            if num_2 == 0:
+                f_str = f_str + f_list[num][0][num_2]
+            else:
+                f_str = f_str + " " + f_list[num][0][num_2]
+        map_1.add_child(folium.Marker(location=f_list[num][1], popup=f_str, icon=folium.Icon()))
+        folium.PolyLine(locations=[f_list[num][1], p_list], color='red').add_to(map_1)
+    map_1.save("Map_1.html")
+    return "Ready"
 
 
 if __name__ == '__main__':
